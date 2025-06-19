@@ -1,8 +1,4 @@
-Oto przykładowy plik `README.md` dla Twojej aplikacji PyQt6 – Menedżera i Symulatora Turnieju Piłkarskiego:
-
----
-
-## ⚽ Tournament Manager & Simulator 🏆
+## Symulator turnieju piłkarskiego
 
 Aplikacja desktopowa do zarządzania i symulowania turnieju piłkarskiego w stylu mistrzostw świata. Napisana w Pythonie z wykorzystaniem PyQt6.
 
