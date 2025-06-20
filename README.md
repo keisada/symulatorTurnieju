@@ -90,5 +90,5 @@ Przykład:
 
 Projekt stworzony w Pythonie przez:
 - Jakub Staniszewski 096660
-- Adam Szcześniak
+- Adam Szcześniak 096166
 
