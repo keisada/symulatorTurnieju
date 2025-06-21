@@ -59,13 +59,15 @@ class Team:
         self.goals_for = 0
         self.goals_against = 0
 
-    def add_player(self, first_name, last_name, attack=None, defense=None, aggression=None):
-        """Dodaje zawodnika do drużyny, przyjmując opcjonalne statystyki."""
-        if len(self.players) >= 11:
-            raise ValueError("Drużyna może mieć maksymalnie 11 zawodników.")
-        player = Player(first_name, last_name, self.name, attack, defense, aggression)
+    def add_player(self, first_name, last_name):
+        # Sprawdzamy, czy imię i nazwisko nie są pustymi stringami
+        if not first_name or not last_name:
+            raise ValueError("Imię i nazwisko gracza nie mogą być puste.")
+
+        # Tworzymy gracza, podając mu jego imię, nazwisko ORAZ nazwę drużyny (self.name)
+        player = Player(first_name, last_name, self.name)  # <--- POPRAWIONA LINIA
         self.players.append(player)
-        return player
+
 
     def remove_player(self, player_name):
         """Usuwa zawodnika z drużyny na podstawie jego imienia i nazwiska."""
@@ -157,6 +159,23 @@ class Match:
 class Tournament:
     """Główna klasa zarządzająca całym stanem i logiką turnieju."""
 
+    def to_dict(self):
+        """Konwertuje obiekt drużyny i jej zawodników na słownik do zapisu w JSON."""
+        return {
+            "name": self.name,
+            "group": self.group,
+            "group_stage_stats": {
+                "points": self.points,
+                "matches_played": self.matches_played,
+                "wins": self.wins,
+                "draws": self.draws,
+                "losses": self.losses,
+                "goals_for": self.goals_for,
+                "goals_against": self.goals_against
+            },
+            "players": [player.to_dict() for player in self.players]
+        }
+
     def __init__(self):
         self.reset_to_setup()
 
@@ -172,6 +191,8 @@ class Tournament:
         self.winner = None
 
     def add_team(self, name):
+        if not name or not name.strip():
+            raise ValueError("Nazwa drużyny nie może być pusta.")
         """Dodaje nową drużynę do turnieju (tylko w fazie SETUP)."""
         if self.phase != "SETUP":
             raise ValueError("Nie można dodawać drużyn po rozpoczęciu turnieju.")
@@ -189,6 +210,18 @@ class Tournament:
             self.teams.remove(team_to_remove)
         else:
             raise ValueError("Nie znaleziono takiej drużyny.")
+
+    def find_team(self, name):
+        """Wyszukuje i zwraca obiekt drużyny o podanej nazwie."""
+        for team in self.teams:
+            if team.name == name:
+                return team
+        return None
+
+    def save_to_file(self, filename):
+        """Zapisuje stan turnieju do pliku JSON."""
+        with open(filename, 'w', encoding='utf-8') as f:
+            json.dump(self.to_dict(), f, ensure_ascii=False, indent=4)
 
     def generate_random_tournament(self):
         """Automatycznie generuje pełny turniej z losowymi drużynami i graczami."""

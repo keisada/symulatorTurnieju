@@ -327,7 +327,6 @@ class TournamentApp(QMainWindow):
             self.players_label.setText("<h3>Zawodnicy w wybranej drużynie</h3>")
 
     def update_status_label(self):
-        # ... (bez zmian, skopiuj)
         if self.tournament.phase == "SETUP":
             text = "Faza Konfiguracji: Dodaj drużyny i zawodników"
         elif self.tournament.winner:
@@ -367,7 +366,6 @@ class TournamentApp(QMainWindow):
                             [[p.name, p.team_name, p.red_cards] for p in reds])
 
     def populate_results_table(self):
-        # ... (bez zmian, skopiuj)
         played_matches = [m for m in self.tournament.matches if m.is_played] + [m for r in
                                                                                 self.tournament.knockout_matches.values()
                                                                                 for m in r if m.is_played]
@@ -383,7 +381,6 @@ class TournamentApp(QMainWindow):
         self.results_table.horizontalHeader().setSectionResizeMode(1, QHeaderView.ResizeMode.ResizeToContents)
 
     def populate_knockout_tab(self):
-        # ... (bez zmian, skopiuj)
         html = "<h1>Drabinka Pucharowa</h1>"
         for round_name in ["Quarter-finals", "Semi-finals", "Final"]:
             if round_name in self.tournament.knockout_matches:
