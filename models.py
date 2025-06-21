@@ -230,9 +230,10 @@ class Tournament:
         for name in selected_team_names:
             self.add_team(name)
             team = next(t for t in self.teams if t.name == name)
-            for _ in range(11):
-                # Dodajemy graczy bez statystyk - konstruktor Player sam je wylosuje
+            players_added = 0
+            while players_added < 11:
                 team.add_player(random.choice(first_names), random.choice(last_names))
+                players_added += 1
         self.start_tournament()
 
     def start_tournament(self):
@@ -316,19 +317,49 @@ class Tournament:
             return f"Zakończono {current_knockout_round}. Czas na {next_knockout_round_name}!"
 
     def _schedule_group_stage(self):
-        """Tworzy terminarz dla fazy grupowej (mecz i rewanż)."""
+        """Tworzy sprawiedliwy terminarz dla fazy grupowej (mecz i rewanż)."""
         self.matches = []
         for group_teams in self.groups.values():
-            schedule = []
-            for i in range(len(group_teams)):
-                for j in range(i + 1, len(group_teams)):
-                    schedule.append((group_teams[i], group_teams[j]))
-                    schedule.append((group_teams[j], group_teams[i]))
 
-            random.shuffle(schedule)
-            for i, match_teams in enumerate(schedule):
-                round_num = (i // 2) + 1
-                self.matches.append(Match(match_teams[0], match_teams[1], round_num, "GROUP"))
+            teams = list(group_teams)
+
+            if len(teams) % 2:
+                teams.append(None)
+
+            num_teams = len(teams)
+            num_rounds = num_teams - 1
+
+            first_leg_rounds = []
+            for round_num in range(num_rounds):
+                current_round_matches = []
+                for i in range(num_teams // 2):
+                    team1 = teams[i]
+                    team2 = teams[num_teams - 1 - i]
+
+                    if team1 is not None and team2 is not None:
+                        current_round_matches.append(Match(team1, team2, round_num + 1, "GROUP"))
+
+                first_leg_rounds.append(current_round_matches)
+
+                teams.insert(1, teams.pop())
+
+            second_leg_rounds = []
+            for i, round_matches in enumerate(first_leg_rounds):
+                current_round_matches = []
+                for match in round_matches:
+                    current_round_matches.append(Match(match.team2, match.team1, num_rounds + i + 1, "GROUP"))
+                second_leg_rounds.append(current_round_matches)
+
+            all_rounds = first_leg_rounds + second_leg_rounds
+
+            random.shuffle(all_rounds)
+
+            round_counter = 1
+            for round_matches in all_rounds:
+                for match in round_matches:
+                    match.round = round_counter
+                    self.matches.append(match)
+                round_counter += 1
 
     def _simulate_match_result(self, match):
         """Symuluje wynik jednego meczu na podstawie statystyk i losowości."""
@@ -350,7 +381,7 @@ class Tournament:
                 match.winner = match.team1
             elif score2 > score1:
                 match.winner = match.team2
-            else:  # Remis -> losowy zwycięzca (symulacja karnych)
+            else:
                 match.winner = random.choice([match.team1, match.team2])
                 match.add_event(91, "INFO", None,
                                 f"Mecz rozstrzygnięty w rzutach karnych. Wygrywa: {match.winner.name}")
@@ -365,7 +396,6 @@ class Tournament:
             scorer.goals += 1
             match.add_event(random.randint(1, 90), "GOAL", scorer)
 
-        # Przypisanie goli dla drużyny 2
         for _ in range(match.score2):
             scorers_pool = [p for p in match.team2.players if p.red_cards == 0]
             if not scorers_pool: continue
@@ -378,7 +408,7 @@ class Tournament:
         for player in all_players_in_match:
             # Szansa na żółtą kartkę rośnie z agresją
             if random.randint(1, 100) < player.aggression * 2:
-                if player.yellow_cards % 2 == 1:  # Jeśli ma już jedną żółtą
+                if player.yellow_cards % 2 == 1:
                     player.red_cards += 1
                     match.add_event(random.randint(1, 90), "RED_CARD", player, "Druga żółta")
                 else:

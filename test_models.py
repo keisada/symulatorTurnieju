@@ -2,6 +2,8 @@ import unittest
 import os
 import random
 from models import Player, Team, Tournament
+import time
+
 
 # Ustawienie stałego ziarna losowości dla powtarzalności testów
 random.seed(42)
@@ -48,7 +50,6 @@ class TestTournamentModels(unittest.TestCase):
     def test_team_calculates_total_stats(self):
         """Testuje, czy drużyna poprawnie sumuje statystyki swoich graczy."""
         team = Team("Statystycy")
-        # Musimy podać team_name, bo tak wymaga konstruktor Playera
         p1 = Player("Gracz", "Jeden", "Statystycy", attack=10, defense=5)
         p2 = Player("Gracz", "Dwa", "Statystycy", attack=7, defense=8)
         team.players.extend([p1, p2])
@@ -78,7 +79,6 @@ class TestTournamentModels(unittest.TestCase):
         """Testuje walidację liczby graczy w drużynie przed startem turnieju."""
         for i in range(16):
             self.tournament.add_team(f"Drużyna {i + 1}")
-        # Jednej z drużyn celowo nie dodajemy graczy
         with self.assertRaisesRegex(ValueError, "musi mieć dokładnie 11 zawodników"):
             self.tournament.start_tournament()
 
@@ -90,7 +90,7 @@ class TestTournamentModels(unittest.TestCase):
         self.assertEqual(self.tournament.phase, "GROUP_STAGE")
         self.assertIn("Grupa A", self.tournament.groups)
         self.assertEqual(len(self.tournament.matches),
-                         48)  # 4 drużyny w grupie, każda gra 6 meczy, 4 grupy -> 4*6*2/2 = 48
+                         48)
 
     def test_full_tournament_simulation_flow(self):
         """Kompleksowy test symulujący cały turniej od początku do końca."""
@@ -100,10 +100,7 @@ class TestTournamentModels(unittest.TestCase):
         # Symulacja 6 kolejek fazy grupowej
         for i in range(6):
             status = self.tournament.simulate_next_round()
-            # W ostatniej, szóstej iteracji (i=5) status będzie inny
             if self.tournament.phase == "GROUP_STAGE":
-                # Sprawdzamy, czy komunikat zawiera poprawny numer kolejki
-                # current_round rośnie PO symulacji, więc sprawdzamy i + 1
                 self.assertIn(f"Zakończono kolejkę {i + 1}", status)
             else:
                 # Po zagraniu 6. kolejki status od razu informuje o końcu fazy grupowej
@@ -127,6 +124,20 @@ class TestTournamentModels(unittest.TestCase):
         # Sprawdzenie, czy zwycięzca został ustawiony
         self.assertIsNotNone(self.tournament.winner)
         self.assertIsInstance(self.tournament.winner, Team)
+
+    def test_performance_of_tournament_generation(self):
+
+        start_time = time.time()
+
+        self.tournament.generate_random_tournament()
+
+        end_time = time.time()
+
+        duration = end_time - start_time
+
+        print(f"\n[INFO] Czas generowania turnieju: {duration:.4f}s")
+
+        self.assertLess(duration, 1.0, "Generowanie turnieju trwało zbyt długo!")
 
 
 if __name__ == '__main__':
