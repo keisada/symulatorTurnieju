@@ -25,6 +25,14 @@ project/
 ├── test_models.py        # Testy jednostkowe dla logiki
 ├── data.py               # Dane: imiona, nazwiska, drużyny
 ├── teams_snapshot_*.json # Eksportowane pliki z danymi turnieju
+
+TournamentApp zawiera jedną instancję Tournament.
+Tournament zawiera wiele (*) instancji Team oraz Match.
+Team zawiera wiele (*) instancji Player.
+Match jest powiązany z dwiema (2) instancjami Team.
+TournamentApp dziedziczy po QMainWindow.
+AddPlayerDialog dziedziczy po QDialog
+
 ```
 
 ---
