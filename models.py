@@ -431,3 +431,78 @@ class Tournament:
             Match(qualifiers["Grupa D"][0], qualifiers["Grupa C"][1], 1, "KNOCKOUT"),
         ]
         self.knockout_matches["Quarter-finals"] = qf_matches
+
+
+class PlayerStatsReporter(Player):
+    def __init__(self, all_players_list):
+
+        super().__init__(first_name="Stat-Bot", last_name="Reporter", team_name="System")
+
+        self.players_to_report_on = all_players_list
+
+
+    def get_top_scorers_ranking(self, top_n=5):
+
+        sorted_by_goals = sorted(self.players_to_report_on, key=lambda p: p.goals, reverse=True)
+
+        ranking = []
+        for i, player in enumerate(sorted_by_goals[:top_n]):
+            if player.goals > 0:
+                ranking_entry = (i + 1, player)
+                ranking.append(ranking_entry)
+            else:
+
+                break
+        return ranking
+
+    def display_top_scorers(self, top_n=5):
+        print(f"\n--- NAJLEPSI STRZELCY (TOP {top_n}) ---")
+
+        top_scorers_ranking = self.get_top_scorers_ranking(top_n)
+
+        if not top_scorers_ranking:
+            print("Nikt jeszcze nie strzelił gola.")
+            return
+
+        for position, player in top_scorers_ranking:
+            print(f"{position}. {player.name} ({player.team_name}) - {player.goals} goli")
+
+    def display_card_offenders(self):
+        print("\n--- ZAWODNICY Z NAJWIĘKSZĄ LICZBĄ KARTEK ---")
+
+        offenders = list(filter(
+            lambda p: p.yellow_cards > 0 or p.red_cards > 0,
+            self.players_to_report_on
+        ))
+
+        sorted_by_cards = sorted(
+            offenders,
+            key=lambda p: (p.red_cards * 3 + p.yellow_cards),
+            reverse=True
+        )
+
+        if not sorted_by_cards:
+            print("Żaden zawodnik nie otrzymał kartki.")
+            return
+
+        for player in sorted_by_cards[:5]:
+            print(f"- {player.name}: {player.yellow_cards} żółtych, {player.red_cards} czerwonych")
+
+    def display_full_stats_table(self):
+        print("\n--- PEŁNE STATYSTYKI ZAWODNIKÓW ---")
+        header = f"{'Zawodnik':<25} | {'Drużyna':<20} | {'Gole':>5} | {'Ż.K.':>5} | {'Cz.K.':>5}"
+        print(header)
+        print("-" * len(header))
+
+        sorted_players = sorted(self.players_to_report_on, key=lambda p: p.last_name)
+
+        format_row = lambda p: (
+            f"{p.name:<25} | {p.team_name:<20} | {p.goals:>5} | {p.yellow_cards:>5} | {p.red_cards:>5}"
+        )
+
+        formatted_rows_iterator = map(format_row, sorted_players)
+
+        for row in formatted_rows_iterator:
+            print(row)
+
+        print("-" * len(header))

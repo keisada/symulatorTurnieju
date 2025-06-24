@@ -8,7 +8,7 @@ from PyQt6.QtWidgets import (
 )
 from PyQt6.QtGui import QFont ,QPalette, QColor, QPixmap
 from PyQt6.QtCore import Qt
-from models import Tournament
+from models import Tournament, PlayerStatsReporter
 
 import shutil
 import matplotlib.pyplot as plt
@@ -290,8 +290,37 @@ class TournamentApp(QMainWindow):
     def run_simulation(self):
         message = self.tournament.simulate_next_round()
         logging.info(f"Symulacja: {message}")
+
         self.refresh_all_views()
         QMessageBox.information(self, "Wynik symulacji", message)
+
+        if self.tournament.winner:
+            QMessageBox.information(self, "Koniec Turnieju",
+                                    "Turniej zakończony! Generuję podsumowanie w konsoli...")
+
+
+            QApplication.processEvents()
+
+            print("\n" + "=" * 25)
+            print("TURNIEJ ZAKOŃCZONY! GENEROWANIE PODSUMOWANIA W KONSOLI...")
+            print("=" * 25)
+
+            try:
+                if self.tournament.all_players:
+                    reporter = PlayerStatsReporter(self.tournament.all_players)
+                    reporter.display_full_stats_table()
+                    reporter.display_top_scorers()
+                    reporter.display_card_offenders()
+                else:
+                    print("Brak zawodników do wygenerowania raportu.")
+
+                print("\nPodsumowanie dostępne w konsoli, w której uruchomiono aplikację.")
+                print("=" * 25 + "\n")
+            except Exception as e:
+                print(f"Wystąpił nieoczekiwany błąd podczas generowania raportu: {e}")
+                logging.error(f"Błąd w raporcie konsolowym: {e}")
+
+
 
     def reset_tournament(self):
         self.tournament.reset_to_setup()
